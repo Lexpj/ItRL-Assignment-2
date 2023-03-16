@@ -7,8 +7,7 @@ class QLearningAgent(object):
         self.n_actions = n_actions
         self.n_states = n_states
         self.epsilon = epsilon
-        self.Q = [[0 for _ in range(n_actions)] for _ in range(n_states)]
-        self.gamma = 0.
+        self.Q = np.zeros((n_states, n_actions))
         
     def select_action(self, state):
         e_greedy = np.zeros(self.n_actions)
@@ -16,8 +15,8 @@ class QLearningAgent(object):
         e_greedy[np.argmax(self.Q[state])] = 1 - self.epsilon
         return np.random.choice(self.n_actions, p = e_greedy)
         
-    def update(self, state, action, reward):
-        self.Q[state][action] = reward
+    def update(self, state, action, reward, stateprime, alpha=0.1, gamma = 1):
+        self.Q[state][action] = self.Q[state][action] + alpha*(reward + gamma*np.max(self.Q[stateprime]) - self.Q[state][action])
 
 class SARSAAgent(object):
 
