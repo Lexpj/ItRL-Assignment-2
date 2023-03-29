@@ -3,39 +3,15 @@ from ShortCutEnvironment import *
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
+from Helper import LearningCurvePlot, ComparisonPlot, smooth, plotarrows, render_policy
 
-# Renders the (optimal) greedy trail of an trained agent 
-def render_policy(env, agent):
-    print()
-    for r in range(env.r):
-        for c in range(env.c):
-            if env.s[r][c] == "X":
-                a = np.argmax(agent.Q[r * env.c + c])
-                if a == 0:
-                    print("U",end = "")
-                elif a == 1:
-                    print("D",end = "")
-                elif a == 2:
-                    print("L",end = "")
-                elif a == 3:
-                    print("R",end = "")
-            else:
-                print(env.s[r][c],end = "")
-        print()
-    print()
-
-def plot(res):
-    mean_res = res.mean(axis = 0)
-    print(res,mean_res)
-    plt.plot(mean_res)
-    plt.show()
 
 def run_repetitions(agent_type, windy = False, n_episodes = 10000, n_rep = 100, alpha = 0.1, gamma = 1.0, epsilon = 0.1):
     
     res = np.zeros((n_rep, n_episodes))
     env = WindyShortcutEnvironment() if windy else ShortcutEnvironment()
-
-    if agent_type == "QLearning":
+    
+    if agent_type == "Q_Learning":
 
         for rep in range(n_rep):
             agent = QLearningAgent(n_actions = env.action_size(), n_states = env.state_size(), epsilon = epsilon)
@@ -62,7 +38,7 @@ def run_repetitions(agent_type, windy = False, n_episodes = 10000, n_rep = 100, 
                 env.reset()  
         
 
-    elif agent_type == "Sarsa":
+    elif agent_type == "SARSA":
         
         for rep in range(n_rep):
             agent = SARSAAgent(n_actions = env.action_size(), n_states = env.state_size(), epsilon = epsilon)
@@ -93,7 +69,7 @@ def run_repetitions(agent_type, windy = False, n_episodes = 10000, n_rep = 100, 
                 env.reset()      
     
     
-    elif agent_type == "expectedsarsa":
+    elif agent_type == "Expected_SARSA":
 
         for rep in range(n_rep):
             agent = ExpectedSARSAAgent(n_actions=env.action_size(), n_states=env.state_size(), epsilon=epsilon)
@@ -121,10 +97,60 @@ def run_repetitions(agent_type, windy = False, n_episodes = 10000, n_rep = 100, 
     return agent, env, res
 
 
+def action_max_value_plot(agent_type, windy = False, n_rep = 1, n_episodes = 10000):
+    agent, env, _ = run_repetitions(agent_type, windy = windy, n_rep = n_rep, n_episodes = n_episodes)
+    s = render_policy(env, agent)
+    plotarrows(s, path = agent_type + '_1.png')
+
+
+def averaged_learning_curve_plot(agent_type, n_rep = 100, n_episodes = 1000):
+    smoothing_window = 29
+    
+    _, _, result = run_repetitions(agent_type = agent_type, n_rep = n_rep, n_episodes = n_episodes)
+    averaged_rewards = np.empty(n_episodes)
+    for i in range(n_episodes):
+        averaged_rewards[i] = result[:, i].mean()
+
+    learning_curve = LearningCurvePlot()
+    learning_curve.add_curve(smooth(y = averaged_rewards, window = smoothing_window), label = 'alpha = 0.1 ')
+    learning_curve.save(name = agent_type + '_2.png')
+    
+
+def varying_alpha_experiment(agent_type, alpha = [0.01, 0.1, 0.5, 0.9], n_rep = 100, n_episodes = 1000):
+    smoothing_window = 29
+    
+    learning_curve = LearningCurvePlot()
+    
+    for i in range(len(alpha)):
+        _, _, result = run_repetitions(agent_type = agent_type, n_rep = n_rep, n_episodes = n_episodes, alpha = alpha[i])
+        averaged_rewards = np.empty(n_episodes) 
+        for k in range(n_episodes):
+            averaged_rewards[k] = result[:, k].mean()
+        learning_curve.add_curve(smooth(y = averaged_rewards, window = smoothing_window), label = 'alpha = ' + str(alpha[i]))
+
+    learning_curve.save(name = agent_type + '_3.png')  
+
+
 def main():
+    # Q-learning experiments
+    action_max_value_plot(agent_type = 'Q_Learning')
+    averaged_learning_curve_plot(agent_type = 'Q_Learning')
+    varying_alpha_experiment(agent_type = 'Q_Learning')
+    
+    # SARSA experiments
+    action_max_value_plot(agent_type = 'SARSA')
+    averaged_learning_curve_plot(agent_type = 'SARSA')
+    varying_alpha_experiment(agent_type = 'SARSA')
+    
+    # Stormy weather experiment
+    action_max_value_plot(agent_type = 'SARSA', windy = True)
+    
+    #Expected-SARSA experiments
+    action_max_value_plot(agent_type = 'Expected_SARSA')
+    averaged_learning_curve_plot(agent_type = 'Expected_SARSA')
+    varying_alpha_experiment(agent_type = 'Expected_SARSA')
+                          
+    
 
-    agent, env, result = run_repetitions('expectedsarsa',n_rep=10,n_episodes=1000)
-
-    render_policy(env, agent)
-
-main()
+if __name__ == '__main__':
+    main()
