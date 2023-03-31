@@ -112,7 +112,7 @@ def averaged_learning_curve_plot(agent_type, n_rep = 100, n_episodes = 1000):
         averaged_rewards[i] = result[:, i].mean()
 
     learning_curve = LearningCurvePlot()
-    learning_curve.add_curve(smooth(y = averaged_rewards, window = smoothing_window), label = 'alpha = 0.1 ')
+    learning_curve.add_curve(smooth(y = averaged_rewards, window = smoothing_window), label = 'alpha = 0.1')
     learning_curve.save(name = agent_type + '_2.png')
     
 
@@ -133,22 +133,25 @@ def varying_alpha_experiment(agent_type, alpha = [0.01, 0.1, 0.5, 0.9], n_rep = 
 
 def main():
     # Q-learning experiments
-    action_max_value_plot(agent_type = 'Q_Learning')
-    averaged_learning_curve_plot(agent_type = 'Q_Learning')
+    #action_max_value_plot(agent_type = 'Q_Learning')
+    #averaged_learning_curve_plot(agent_type = 'Q_Learning')
     varying_alpha_experiment(agent_type = 'Q_Learning')
     
     # SARSA experiments
-    action_max_value_plot(agent_type = 'SARSA')
-    averaged_learning_curve_plot(agent_type = 'SARSA')
+    #action_max_value_plot(agent_type = 'SARSA')
+    #averaged_learning_curve_plot(agent_type = 'SARSA')
     varying_alpha_experiment(agent_type = 'SARSA')
     
     # Stormy weather experiment
-    action_max_value_plot(agent_type = 'SARSA', windy = True)
+    #action_max_value_plot(agent_type = 'SARSA', windy = True)
     
     #Expected-SARSA experiments
-    action_max_value_plot(agent_type = 'Expected_SARSA')
-    averaged_learning_curve_plot(agent_type = 'Expected_SARSA')
+    #action_max_value_plot(agent_type = 'Expected_SARSA')
     varying_alpha_experiment(agent_type = 'Expected_SARSA')
+    # Optimal alpha: 0.1
+    #averaged_learning_curve_plot(agent_type = 'Expected_SARSA')
+    
+    
                           
     
 
